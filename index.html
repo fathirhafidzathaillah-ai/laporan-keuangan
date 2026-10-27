@@ -331,6 +331,11 @@
   </div>
 
   <div class="glass">
+    <h2>Dibanding bulan lalu</h2>
+    <div id="bandingkan"></div>
+  </div>
+
+  <div class="glass">
     <h2>Aset investasi</h2>
     <div class="tiles" style="grid-template-columns:1fr 1fr;margin-bottom:0">
       <div class="tile"><small>Crypto</small><b id="as-crypto">0</b></div>
@@ -346,6 +351,11 @@
   <div class="glass">
     <h2>Pemasukan vs pengeluaran per bulan</h2>
     <div class="chart-box"><canvas id="c-bulanan"></canvas></div>
+  </div>
+
+  <div class="glass">
+    <h2>Tren total saldo</h2>
+    <div class="chart-box"><canvas id="c-tren"></canvas></div>
   </div>
 </section>
 
@@ -511,6 +521,40 @@
   </details>
 
   <details class="glass sec">
+    <summary><span class="ico"><svg viewBox="0 0 24 24"><path d="M4 12a8 8 0 0114-5.3M20 12a8 8 0 01-14 5.3"/><path d="M18 3v4h-4M6 21v-4h4"/></svg></span><span class="ttl">Transaksi berulang<small>Langganan, tagihan, atau gaji otomatis tercatat</small></span></summary>
+    <div class="isi">
+      <div class="row" style="margin-bottom:10px">
+        <select id="r-jenis" style="flex:1 1 120px">
+          <option value="out">Pengeluaran</option>
+          <option value="in">Pemasukan</option>
+        </select>
+        <select id="r-periode" style="flex:1 1 120px">
+          <option value="bulanan">Tiap bulan</option>
+          <option value="mingguan">Tiap minggu</option>
+        </select>
+      </div>
+      <div class="row" style="margin-bottom:10px">
+        <input type="text" id="r-ket" placeholder="Keterangan, misal Netflix" style="flex:2 1 160px">
+        <input type="text" id="r-nom" placeholder="Nominal" inputmode="numeric" style="flex:1 1 110px">
+      </div>
+      <div class="row" style="margin-bottom:10px">
+        <input type="date" id="r-mulai" style="flex:1 1 140px">
+        <select id="r-src" style="flex:1 1 120px">
+          <option value="BCA">BCA</option>
+          <option value="BLU">Blu by BCA</option>
+          <option value="CASH">Cash</option>
+          <option value="EWALLET">E-wallet</option>
+        </select>
+      </div>
+      <select id="r-kat" style="width:100%;margin-bottom:10px"></select>
+      <button id="r-simpan" style="width:100%">Simpan transaksi berulang</button>
+      <p class="muted" id="r-status" style="margin:10px 0 0"></p>
+      <h2 style="font-size:14px;margin-top:14px">Daftar berulang</h2>
+      <div style="max-height:220px;overflow:auto"><table><tbody id="r-list"></tbody></table></div>
+    </div>
+  </details>
+
+  <details class="glass sec">
     <summary><span class="ico"><svg viewBox="0 0 24 24"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></svg></span><span class="ttl">Pengaturan dan data<small>Saldo awal, ekspor, dan hapus data</small></span></summary>
     <div class="isi">
       <h2 style="font-size:14px;margin-top:4px">Saldo awal</h2>
@@ -521,9 +565,13 @@
       </div>
       <h2 style="font-size:14px">Data</h2>
       <p class="muted" id="info-data"></p>
+      <p class="muted" id="info-impor" style="margin:0 0 8px"></p>
+      <button class="danger" id="btn-timpa" style="display:none;margin-bottom:10px">Timpa data dengan cadangan ini</button>
       <div class="row">
         <button class="ghost" id="btn-pdf">Ekspor PDF</button>
         <button class="ghost" id="btn-ekspor">Ekspor JSON</button>
+        <button class="ghost" id="btn-impor-json">Impor JSON</button>
+        <input type="file" id="imp-json" accept="application/json,.json" style="display:none">
         <button class="danger" id="btn-hapus">Hapus semua</button>
       </div>
     </div>
@@ -631,7 +679,7 @@
     moveHL(from, tabs.find(t=>t.dataset.go===id));
     document.querySelectorAll(".screen").forEach(s=>s.classList.toggle("on", s.id===id));
     window.scrollTo({top:0,behavior:"smooth"});
-    if(id==="s-beranda") renderBeranda();
+    if(id==="s-beranda"){ tambahRutinJatuhTempo(); renderBeranda(); }
     if(id==="s-cari") renderCari();
     if(id==="s-pustaka") renderPustaka();
     if(id==="s-tabungan"){ renderTabungan(); renderGoalsPustaka(); }
@@ -712,7 +760,9 @@
   const ym = d => d.slice(0,7);
   bulanEl.value = data.length ? data.map(t=>ym(t.date)).sort().pop() : new Date().toISOString().slice(0,7);
   bulanEl.addEventListener("change", renderBeranda);
-  let chH=null, chB=null, chK=null;
+  let chH=null, chB=null, chK=null, chTren=null;
+  const KAT_IKON = {"Makan & minum":"🍜","Transportasi":"🚗","Tagihan":"🧾","Belanja":"🛍️","Hiburan":"🎬","Kesehatan":"💊","Pendidikan":"📚","Pemasukan":"💰","Tabungan":"🏦"};
+  const ikonKat = k => (KAT_IKON[k] || "📦") + " " + k;
   // grafik hanya dibuat kalau Chart.js sudah termuat, supaya bagian lain tetap jalan
   const mkChart = (el, cfg) => (typeof Chart === "undefined" || !el) ? null : new Chart(el, cfg);
   let warnaTeks = "#ffffff", warnaGrid = "rgba(255,255,255,.15)";
@@ -760,19 +810,57 @@
     if(chK) chK.destroy();
     chK = mkChart($("c-kategori"),{
       type:"doughnut",
-      data:{labels:kk,datasets:[{data:kk.map(k=>katSpent[k]),backgroundColor:PALET,borderColor:warnaBorder,borderWidth:2}]},
+      data:{labels:kk.map(ikonKat),datasets:[{data:kk.map(k=>katSpent[k]),backgroundColor:PALET,borderColor:warnaBorder,borderWidth:2}]},
       options:{responsive:true,maintainAspectRatio:false,
         plugins:{legend:{position:"bottom",labels:{color:warnaTeks,boxWidth:12}},
           tooltip:{callbacks:{label:c=>c.label+": "+fmt(c.parsed)}}}}
     });
+    // dibanding bulan lalu
+    const bulanLalu = (()=>{ const [yy,mm] = bln.split("-").map(Number); const d = new Date(yy, mm-2, 1); return ymdLokal(d).slice(0,7); })();
+    const sumKat = b => { const o = {}; data.filter(t=>ym(t.date)===b).forEach(t=>{ if(t.transfer || t.kat==="Tabungan" || t.amount>=0) return; const k = t.kat || tebak(t.desc,t.amount); o[k] = (o[k]||0) + (-t.amount); }); return o; };
+    const lalu = sumKat(bulanLalu);
+    const kunciBanding = [...new Set([...kk, ...Object.keys(lalu)])].filter(k=>(katSpent[k]||0) || (lalu[k]||0))
+      .sort((a,b)=>(katSpent[b]||0)-(katSpent[a]||0));
+    $("bandingkan").innerHTML = kunciBanding.length ? kunciBanding.map(k=>{
+      const now = katSpent[k]||0, prev = lalu[k]||0;
+      let tanda;
+      if(!prev) tanda = `<span class="muted">baru bulan ini</span>`;
+      else { const persen = Math.round((now-prev)/prev*100);
+        tanda = persen === 0 ? `<span class="muted">sama</span>`
+          : persen > 0 ? `<span class="neg">▲ ${persen}%</span>` : `<span class="pos">▼ ${-persen}%</span>`; }
+      return `<div class="row" style="justify-content:space-between;font-size:13px;padding:7px 0;border-bottom:1px solid var(--line)">
+        <span>${esc(ikonKat(k))}</span><span style="text-align:right">${fmt(now)} <span class="muted">vs ${fmt(prev)}</span> ${tanda}</span></div>`;
+    }).join("") : '<p class="muted">Belum ada pengeluaran untuk dibandingkan.</p>';
+
+    // tren total saldo sampai bulan terpilih
+    const sampai = data.filter(t=>ym(t.date) <= bln).sort((a,b)=>a.date.localeCompare(b.date));
+    const bulanTren = [...new Set(sampai.map(t=>ym(t.date)))].sort();
+    if(!bulanTren.length) bulanTren.push(bln);
+    let jalan = saldoAwal; const saldoBulan = {};
+    let idx = 0; const urut = data.slice().sort((a,b)=>a.date.localeCompare(b.date));
+    bulanTren.forEach(bm=>{
+      while(idx < urut.length && ym(urut[idx].date) <= bm){ jalan += urut[idx].amount; idx++; }
+      saldoBulan[bm] = jalan;
+    });
+    if(chTren) chTren.destroy();
+    chTren = mkChart($("c-tren"),{
+      type:"line",
+      data:{labels:bulanTren, datasets:[{data:bulanTren.map(b=>saldoBulan[b]), borderColor:warnaMasuk, backgroundColor:warnaMasuk, tension:.3, pointRadius:3, borderWidth:2}]},
+      options:opsi(v=>fmt(v))
+    });
+
     const bKeys = Object.keys(budget);
     $("anggaran").innerHTML = bKeys.length ? bKeys.map(k=>{
-      const pakai = katSpent[k]||0, lim = budget[k], pct = Math.min(100, pakai/lim*100);
-      return `<div style="margin-bottom:12px">
+      const pakai = katSpent[k]||0, lim = budget[k], rasio = pakai/lim, pct = Math.min(100, rasio*100);
+      const status = rasio > 1 ? `<span class="neg">Melewati batas ${rp(pakai-lim)}</span>`
+        : rasio >= .8 ? `<span class="muted">Hampir habis, sisa ${rp(lim-pakai)}</span>`
+        : `<span class="muted">Aman, sisa ${rp(lim-pakai)}</span>`;
+      return `<div style="margin-bottom:14px">
         <div class="row" style="justify-content:space-between;font-size:13px">
-          <span>${esc(k)}</span><span class="${pakai>lim?"neg":"muted"}">${fmt(pakai)} / ${fmt(lim)}</span></div>
+          <span>${esc(ikonKat(k))}</span><span class="${rasio>1?"neg":"muted"}">${fmt(pakai)} / ${fmt(lim)}</span></div>
         <div style="height:10px;border-radius:99px;background:var(--field);overflow:hidden;margin-top:6px">
-          <div style="height:100%;width:${pct}%;background:${pakai>lim?"#b0b0b0":warnaMasuk};border-radius:99px"></div></div></div>`;
+          <div style="height:100%;width:${pct}%;background:${rasio>1?"#b0b0b0":rasio>=.8?"linear-gradient(90deg,rgba(127,127,127,.6),"+warnaMasuk+")":warnaMasuk};border-radius:99px"></div></div>
+        <div style="font-size:12px;margin-top:5px">${status}</div></div>`;
     }).join("") : '<p class="muted">Belum ada anggaran. Atur di Pustaka, bagian 4.</p>';
 
     // harian
@@ -835,7 +923,7 @@
         <div class="tx-top">
           <div class="tx-main">
             <div class="tx-desc">${esc(t.desc)}</div>
-            <div class="tx-meta">${esc(t.date)} · ${esc(t.src)} · ${esc(t.kat||tebak(t.desc,t.amount))}</div>
+            <div class="tx-meta">${esc(t.date)} · ${esc(t.src)} · ${esc(ikonKat(t.kat||tebak(t.desc,t.amount)))}</div>
           </div>
           <div class="tx-amt ${t.amount>0?"pos":"neg"}">${t.amount>0?"+":"-"}${fmt(Math.abs(t.amount))}</div>
         </div>
@@ -915,7 +1003,7 @@
   });
 
   $("btn-ekspor").addEventListener("click", ()=>{
-    const blob = new Blob([JSON.stringify({tx:data, saldoAwal, aset, budget}, null, 2)], {type:"application/json"});
+    const blob = new Blob([JSON.stringify({versi:2, tx:data, saldoAwal, aset, budget, goals, rutin}, null, 2)], {type:"application/json"});
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob); a.download = "laporan-keuangan.json"; a.click();
   });
@@ -978,6 +1066,36 @@
     setTimeout(()=>window.print(), 350);
   }
   $("btn-pdf").addEventListener("click", bukaLaporanPdf);
+
+  // ---------- impor cadangan JSON ----------
+  let jsonImpor = null;
+  $("btn-impor-json").addEventListener("click", ()=>$("imp-json").click());
+  $("imp-json").addEventListener("change", async e=>{
+    const f = e.target.files[0]; const info = $("info-impor");
+    jsonImpor = null; $("btn-timpa").style.display = "none";
+    if(!f) return;
+    try{
+      const obj = JSON.parse(await f.text());
+      if(!obj || !Array.isArray(obj.tx)) throw new Error("format tidak dikenali");
+      jsonImpor = obj;
+      info.className = "muted";
+      info.textContent = `Berisi ${obj.tx.length} transaksi${Array.isArray(obj.goals) ? ", " + obj.goals.length + " tujuan tabungan" : ""}${Array.isArray(obj.rutin) ? ", " + obj.rutin.length + " transaksi berulang" : ""}. Data di browser ini akan diganti.`;
+      $("btn-timpa").style.display = "inline-block";
+    }catch(err){
+      info.className = "neg"; info.textContent = "File tidak bisa dibaca sebagai cadangan laporan keuangan.";
+    }
+  });
+  $("btn-timpa").addEventListener("click", e=>{
+    if(!jsonImpor) return;
+    if(!konfirmasi(e.currentTarget)) return;
+    tulis(KEY, jsonImpor.tx);
+    tulis(KEY_SALDO, Number(jsonImpor.saldoAwal) || 0);
+    tulis(KEY_ASET, Array.isArray(jsonImpor.aset) ? jsonImpor.aset : []);
+    tulis(KEY_BUDGET, jsonImpor.budget && typeof jsonImpor.budget === "object" ? jsonImpor.budget : {});
+    tulis(KEY_GOAL, Array.isArray(jsonImpor.goals) ? jsonImpor.goals : []);
+    tulis("lk.rutin.v1", Array.isArray(jsonImpor.rutin) ? jsonImpor.rutin : []);
+    location.reload();
+  });
 
   $("btn-hapus").addEventListener("click", e=>{
     if(!konfirmasi(e.currentTarget)) return;
@@ -1125,6 +1243,7 @@
   }
 
   let hasilBaca = [];
+  let lewatiAda = 0;
   $("btn-baca").addEventListener("click", async ()=>{
     const files = [...$("imp-file").files];
     const src = $("imp-src").value;
@@ -1144,8 +1263,16 @@
       pv.innerHTML = `<p class="neg">Gagal membaca PDF: ${esc(e.message)}</p>`; return;
     }
     const kunci = t => `${t.src}|${t.date}|${t.desc}|${t.amount}`;
-    const ada = new Set(data.map(kunci));
-    hasilBaca = hasilBaca.filter(t=>!ada.has(kunci(t)));
+    // hitung per kunci: transaksi identik yang sudah ada hanya dilewati sebanyak jumlahnya
+    const sisa = new Map();
+    data.forEach(t=>{ const k = kunci(t); sisa.set(k, (sisa.get(k) || 0) + 1); });
+    const sebelumFilter = hasilBaca.length;
+    hasilBaca = hasilBaca.filter(t=>{
+      const k = kunci(t), n = sisa.get(k) || 0;
+      if(n > 0){ sisa.set(k, n - 1); return false; }
+      return true;
+    });
+    lewatiAda = sebelumFilter - hasilBaca.length;
     hasilBaca.forEach((t,i)=>{ t.id = Date.now().toString(36)+i; t.transfer = false; t.kat = tebak(t.desc, t.amount); });
     tampilPratinjau();
   });
@@ -1156,7 +1283,7 @@
     const masuk = hasilBaca.filter(t=>t.amount>0).reduce((a,t)=>a+t.amount,0);
     const keluar = hasilBaca.filter(t=>t.amount<0).reduce((a,t)=>a-t.amount,0);
     pv.innerHTML = `
-      <p class="muted">${hasilBaca.length} transaksi terbaca. Masuk ${rp(masuk)}, keluar ${rp(keluar)}. Centang "transfer" untuk transfer antar rekening supaya tidak terhitung dua kali.</p>
+      <p class="muted">${hasilBaca.length} transaksi baru terbaca${lewatiAda ? ` (${lewatiAda} yang sudah ada dilewati)` : ""}. Masuk ${rp(masuk)}, keluar ${rp(keluar)}. Centang "transfer" untuk transfer antar rekening supaya tidak terhitung dua kali.</p>
       <div style="max-height:300px;overflow:auto;margin:8px 0">
         <table><tbody>${hasilBaca.map((t,i)=>`
           <tr>
@@ -1472,8 +1599,71 @@
   }
   ["m-nom","e-nom","a-nilai","b-limit","saldo-awal","sc-nom","t-target","t-per","t-nom"].forEach(rupiahInput);
 
+  // ---------- transaksi berulang ----------
+  const KEY_RUTIN = "lk.rutin.v1";
+  let rutin = baca(KEY_RUTIN, []);   // {id, desc, amount, src, kat, periode, mulai, terakhir}
+  const pad2 = n => String(n).padStart(2, "0");
+  const ymdLokal = d => `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;
+  function kemudian(r, ymd){
+    const [y, m, d] = ymd.split("-").map(Number);
+    if(r.periode === "mingguan") return ymdLokal(new Date(y, m-1, d+7));
+    const anker = Number(r.mulai.slice(8,10));          // tanggal asli, dipakai ulang di bulan berikutnya
+    const bulanDepan = new Date(y, m, 1);
+    const akhirBulan = new Date(bulanDepan.getFullYear(), bulanDepan.getMonth()+1, 0).getDate();
+    return ymdLokal(new Date(bulanDepan.getFullYear(), bulanDepan.getMonth(), Math.min(anker, akhirBulan)));
+  }
+  function tambahRutinJatuhTempo(){
+    const hari = ymdLokal(new Date());
+    let berubah = false;
+    rutin.forEach(r=>{
+      let cur = r.terakhir ? kemudian(r, r.terakhir) : r.mulai;
+      let aman = 0;
+      while(cur <= hari && aman++ < 1000){
+        data.push({id: uid(), date: cur, desc: r.desc, amount: r.amount, src: r.src, kat: r.kat, transfer: false, manual: true, rutinId: r.id});
+        r.terakhir = cur; berubah = true;
+        cur = kemudian(r, cur);
+      }
+    });
+    if(berubah){ simpan(); tulis(KEY_RUTIN, rutin); }
+    return berubah;
+  }
+  function renderRutin(){
+    $("r-list").innerHTML = rutin.length
+      ? rutin.map(r=>{
+          const next = r.terakhir ? kemudian(r, r.terakhir) : r.mulai;
+          return `<tr><td class="tx-desc">${esc(r.desc)}<br><span class="muted">${r.amount>0?"+":"-"}${fmt(Math.abs(r.amount))} · ${r.periode==="mingguan"?"mingguan":"bulanan"} · berikutnya ${esc(next)}</span></td><td><button class="ghost" data-rutin="${esc(r.id)}" style="padding:2px 8px;font-size:12px">hapus</button></td></tr>`;
+        }).join("")
+      : '<tr><td class="muted">Belum ada transaksi berulang.</td></tr>';
+  }
+  isiKategori($("r-kat"), true);
+  $("r-simpan").addEventListener("click", ()=>{
+    const st = $("r-status");
+    const ket = $("r-ket").value.trim();
+    const nom = parseRp($("r-nom").value);
+    const mulai = $("r-mulai").value;
+    if(!ket){ st.className="neg"; st.textContent="Isi keterangan dulu."; return; }
+    if(!(nom>0)){ st.className="neg"; st.textContent="Nominal harus lebih dari 0."; return; }
+    if(!mulai){ st.className="neg"; st.textContent="Isi tanggal mulai dulu."; return; }
+    const amount = $("r-jenis").value === "in" ? nom : -nom;
+    rutin.push({id: uid(), desc: ket, amount, src: $("r-src").value, kat: katDari($("r-kat").value, ket, amount), periode: $("r-periode").value, mulai, terakhir: null});
+    tulis(KEY_RUTIN, rutin);
+    const dibuat = tambahRutinJatuhTempo();
+    $("r-ket").value = ""; $("r-nom").value = "";
+    st.className = "pos";
+    st.textContent = dibuat ? "Tersimpan dan transaksi yang sudah jatuh tempo langsung tercatat." : "Tersimpan. Akan tercatat otomatis saat jatuh tempo.";
+    renderRutin(); renderBeranda(); renderCari();
+  });
+  $("r-list").addEventListener("click", e=>{
+    const id = e.target.dataset.rutin; if(!id) return;
+    if(!konfirmasi(e.target)) return;
+    rutin = rutin.filter(r=>r.id!==id); tulis(KEY_RUTIN, rutin);
+    renderRutin();
+  });
+
   // ---------- init ----------
   if(window.pdfjsLib) pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+  tambahRutinJatuhTempo();
+  renderRutin();
   renderBeranda();
   renderPustaka();
   renderCari();
