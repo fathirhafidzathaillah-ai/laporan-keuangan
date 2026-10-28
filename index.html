@@ -117,6 +117,16 @@
     #laporan-cetak h2{page-break-after:avoid}
     #laporan-cetak .tabel{page-break-inside:auto}
   }
+  .mk-row{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--line);font-size:14px}
+  .mk-row:last-child{border-bottom:none}
+  .live-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--light);margin-right:6px;vertical-align:middle;animation:livePulse 1.6s ease-in-out infinite}
+  @keyframes livePulse{0%,100%{opacity:1}50%{opacity:.25}}
+  @media (prefers-reduced-motion: reduce){.live-dot{animation:none}}
+  .mk-ch{font-size:12px;font-weight:600}
+  .mk-ch.up{color:var(--light)} .mk-ch.down{color:var(--accent)}
+  .seg.seg-rentang{overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+  .seg.seg-rentang::-webkit-scrollbar{display:none}
+  .seg.seg-rentang button{flex:0 0 auto;padding:6px 9px;font-size:12px;min-width:0}
   .seg-palet button{font-size:12px;padding-left:2px;padding-right:2px}
 
   /* Progres tujuan tabungan */
@@ -440,6 +450,47 @@
   </div>
 </section>
 
+<!-- ============ MARKET ============ -->
+<section id="s-market" class="screen">
+  <h1>Market</h1>
+  <div class="row" style="justify-content:space-between;margin:-4px 4px 12px">
+    <span class="muted" id="mk-waktu">Belum diperbarui</span>
+    <button class="ghost" id="mk-refresh" style="padding:6px 12px;font-size:13px">Perbarui</button>
+  </div>
+
+  <div class="glass hero">
+    <div class="muted">Bitcoin (BTC)</div>
+    <div id="mk-btc" class="big">—</div>
+    <div id="mk-btc-ch" style="font-size:14px;margin-top:6px" class="muted"></div>
+  </div>
+
+  <div class="glass">
+    <div class="row" style="justify-content:space-between;align-items:center;margin-bottom:6px">
+      <h2 style="margin:0">Grafik <span id="mk-sym" class="muted" style="font-size:13px">BTC</span></h2>
+      <select id="mk-pilih" style="flex:0 0 auto;width:auto;padding:6px 10px"></select>
+    </div>
+    <div class="seg seg-rentang" id="mk-rentang"></div>
+    <div class="chart-box" style="height:200px;margin-top:10px"><canvas id="c-market"></canvas></div>
+    <p class="muted" id="mk-hist-info" style="font-size:12px;margin:8px 0 0"></p>
+  </div>
+
+  <div class="glass">
+    <h2>Kripto</h2>
+    <div id="mk-kripto"><p class="muted">Memuat...</p></div>
+    <p class="muted" style="font-size:12px;margin:10px 0 0">Total aset kripto yang kamu catat: <span id="mk-aset-kripto">Rp 0</span></p>
+  </div>
+
+  <div class="glass">
+    <h2>Kurs USD ke IDR</h2>
+    <div class="tiles" style="grid-template-columns:1fr 1fr;margin-bottom:0">
+      <div class="tile"><small>1 USD</small><b id="mk-usd">—</b></div>
+      <div class="tile"><small>Sumber</small><b id="mk-usd-src" style="font-size:13px">—</b></div>
+    </div>
+  </div>
+
+  <p class="muted" style="font-size:12px;margin:8px 4px 0">Data harga dari CoinGecko dan kurs dari open.er-api.com. Harga bisa tertunda beberapa menit. Bukan saran investasi.</p>
+</section>
+
 <!-- ============ PUSTAKA ============ -->
 <section id="s-pustaka" class="screen">
   <h1>Pustaka</h1>
@@ -590,6 +641,9 @@
   <button class="tab" data-go="s-tabungan">
     <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M14.5 9.5a2.5 2.5 0 00-2.5-1.5 2 2 0 000 4 2 2 0 010 4 2.5 2.5 0 01-2.5-1.5M12 6.5V8M12 16v1.5"/></svg>Tabungan
   </button>
+  <button class="tab" data-go="s-market">
+    <svg viewBox="0 0 24 24"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/></svg>Market
+  </button>
   <button class="tab" data-go="s-pustaka">
     <svg viewBox="0 0 24 24"><path d="M4 4v16M9 4v16M14 6l5 14"/></svg>Pustaka
   </button>
@@ -682,6 +736,7 @@
     if(id==="s-beranda"){ tambahRutinJatuhTempo(); renderBeranda(); }
     if(id==="s-cari") renderCari();
     if(id==="s-pustaka") renderPustaka();
+    if(id==="s-market"){ renderMarket(false); mulaiLive(); } else stopLive();
     if(id==="s-tabungan"){ renderTabungan(); renderGoalsPustaka(); }
   }
   tabs.forEach(t=>t.addEventListener("click",()=>{
@@ -1067,6 +1122,142 @@
   }
   $("btn-pdf").addEventListener("click", bukaLaporanPdf);
 
+  // ---------- market (harga kripto dan kurs USD) ----------
+  const KEY_MARKET = "lk.market.v1";
+  const KOIN = [["bitcoin","BTC"],["ethereum","ETH"],["solana","SOL"],["binancecoin","BNB"],["ripple","XRP"],["dogecoin","DOGE"],["cardano","ADA"]];
+  let market = baca(KEY_MARKET, null);
+  let chMarket = null, koinGrafik = "BTC";
+  const RIWAYAT_MAKS = 120;   // ±2 jam pada interval 1 menit
+  const fmtChg = v => v==null ? "" : `${v>=0?"▲":"▼"} ${Math.abs(v).toFixed(2)}%`;
+  const chgKelas = v => v==null ? "" : (v>=0 ? "up" : "down");
+  async function ambilMarket(){
+    const hasil = {waktu: Date.now()};
+    try{
+      const ids = KOIN.map(k=>k[0]).join(",");
+      const r = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=idr&include_24hr_change=true`, {cache:"no-store"});
+      if(!r.ok) throw new Error("coingecko");
+      const j = await r.json();
+      hasil.koin = KOIN.map(([id,sym])=>({sym, idr: j[id]?.idr ?? null, chg: j[id]?.idr_24h_change ?? null}));
+    }catch(e){ hasil.koinGagal = true; }
+    try{
+      const r = await fetch("https://open.er-api.com/v6/latest/USD", {cache:"no-store"});
+      if(!r.ok) throw new Error("kurs");
+      const j = await r.json();
+      hasil.usd = j.rates?.IDR ?? null; hasil.usdSrc = "open.er-api.com";
+    }catch(e){ hasil.usdGagal = true; }
+    if(hasil.koin){
+      // tambahkan titik harga baru ke riwayat tiap koin
+      const hist = (market && market.hist) ? JSON.parse(JSON.stringify(market.hist)) : {};
+      hasil.koin.forEach(k=>{
+        if(k.idr == null) return;
+        const arr = hist[k.sym] = hist[k.sym] || [];
+        arr.push({t: hasil.waktu, p: k.idr});
+        if(arr.length > RIWAYAT_MAKS) arr.splice(0, arr.length - RIWAYAT_MAKS);
+      });
+      hasil.hist = hist;
+    } else if(market && market.hist){ hasil.hist = market.hist; }
+    if(hasil.koin || hasil.usd){ market = hasil; tulis(KEY_MARKET, market); }
+    renderMarket(true);
+  }
+  // rentang waktu: menit, jam, hari, bulan, tahun
+  const RENTANG = [["1m",1,1,"1 menit"],["5m",5,1,"5 menit"],["15m",15,1,"15 menit"],["30m",30,1,"30 menit"],["1j",60,1,"1 jam"],["2j",120,1,"2 jam"],["3j",180,1,"3 jam"],["1h",1440,1,"1 hari"],["1b",10080,7,"1 minggu"],["1bl",43200,30,"1 bulan"],["3bl",129600,90,"3 bulan"],["1t",525600,365,"1 tahun"],["5t",2628000,1825,"5 tahun"]];
+  let rentangGrafik = "1h", grafikToken = 0;
+  async function ambilSeri(id, days){
+    const kunci = `lk.seri.${id}.${days}`;
+    const ttl = days <= 1 ? 3*60000 : 60*60000;
+    const cache = baca(kunci, null);
+    if(cache && Date.now() - cache.t < ttl) return cache.data;
+    const r = await fetch(`https://api.coingecko.com/api/v3/coins/${id}/market_chart?vs_currency=idr&days=${days}`, {cache:"no-store"});
+    if(!r.ok) throw new Error("seri");
+    const j = await r.json();
+    const data = (j.prices || []).map(([t,p])=>({t, p}));
+    tulis(kunci, {t: Date.now(), data});
+    return data;
+  }
+  async function renderGrafikMarket(){
+    const token = ++grafikToken;
+    const pilih = $("mk-pilih");
+    if(!pilih.options.length){
+      pilih.innerHTML = KOIN.map(([,sym])=>`<option value="${sym}">${sym}</option>`).join("");
+      pilih.value = koinGrafik;
+      pilih.addEventListener("change", ()=>{ koinGrafik = pilih.value; renderGrafikMarket(); });
+      $("mk-rentang").innerHTML = RENTANG.map(([k,,,lbl])=>`<button data-rentang="${k}" title="${lbl}">${k}</button>`).join("");
+      $("mk-rentang").addEventListener("click", e=>{
+        const k = e.target.dataset.rentang; if(!k) return;
+        rentangGrafik = k; renderGrafikMarket();
+      });
+    }
+    $("mk-rentang").querySelectorAll("button").forEach(b=>b.classList.toggle("on", b.dataset.rentang === rentangGrafik));
+    $("mk-sym").textContent = koinGrafik;
+    const [, menit, days, lbl] = RENTANG.find(x=>x[0]===rentangGrafik);
+    const id = (KOIN.find(k=>k[1]===koinGrafik) || KOIN[0])[0];
+    let seri = [];
+    try{ seri = await ambilSeri(id, days); }catch(e){ seri = []; }
+    if(token !== grafikToken) return;
+    const dari = Date.now() - menit*60000;
+    // gabungkan data historis (CoinGecko) dengan riwayat pembaruan langsung di aplikasi
+    const live = ((market && market.hist) || {})[koinGrafik] || [];
+    let pts = seri.filter(x=>x.t >= dari);
+    const akhirSeri = pts.length ? pts[pts.length-1].t : 0;
+    pts = pts.concat(live.filter(x=>x.t > akhirSeri && x.t >= dari));
+    if(!pts.length) pts = live.slice(-1);
+    const info = pts.length
+      ? `Rentang ${lbl} · ${pts.length} titik · harga terakhir ${rp(pts[pts.length-1].p)}`
+      : "Data untuk rentang ini belum tersedia. Coba rentang lain atau tunggu pembaruan.";
+    $("mk-hist-info").textContent = info;
+    if(typeof Chart === "undefined") return;
+    const panjang = menit > 1440 ? {day:"numeric", month:"short", year:"2-digit"} : {hour:"2-digit", minute:"2-digit"};
+    const label = pts.map(x=>new Date(x.t).toLocaleString("id-ID", panjang));
+    const nilai = pts.map(x=>x.p);
+    const naik = nilai.length > 1 ? nilai[nilai.length-1] >= nilai[0] : true;
+    const warna = naik ? warnaMasuk : warnaKeluar;
+    if(!chMarket){
+      chMarket = mkChart($("c-market"), {
+        type:"line",
+        data:{labels:label, datasets:[{data:nilai, borderColor:warna, backgroundColor:warna, borderWidth:2, pointRadius:0, tension:.25, fill:false}]},
+        options:{responsive:true, maintainAspectRatio:false, animation:{duration:400},
+          plugins:{legend:{display:false}, tooltip:{callbacks:{label:c=>rp(c.parsed.y)}}},
+          scales:{x:{ticks:{color:warnaTeks, maxTicksLimit:5, autoSkip:true}, grid:{color:warnaGrid}},
+                  y:{beginAtZero:false, ticks:{color:warnaTeks, maxTicksLimit:5, callback:v=>fmt(v)}, grid:{color:warnaGrid}}}}
+      });
+    } else {
+      chMarket.data.labels = label;
+      chMarket.data.datasets[0].data = nilai;
+      chMarket.data.datasets[0].borderColor = warna;
+      chMarket.data.datasets[0].backgroundColor = warna;
+      chMarket.options.scales.x.ticks.color = warnaTeks;
+      chMarket.options.scales.y.ticks.color = warnaTeks;
+      chMarket.update();
+    }
+  }
+  function renderMarket(sudahAmbil){
+    const m = market || {};
+    const waktu = m.waktu ? new Date(m.waktu).toLocaleString("id-ID", {day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"}) : null;
+    $("mk-waktu").innerHTML = waktu ? `<span class="live-dot"></span>Live · ${waktu}` : "Belum diperbarui";
+    const btc = (m.koin||[]).find(k=>k.sym==="BTC");
+    $("mk-btc").textContent = btc?.idr ? rp(btc.idr) : "—";
+    $("mk-btc-ch").innerHTML = btc?.chg!=null ? `<span class="mk-ch ${chgKelas(btc.chg)}">${fmtChg(btc.chg)}</span> <span class="muted">24 jam terakhir</span>` : "";
+    $("mk-kripto").innerHTML = m.koin ? m.koin.map(k=>`<div class="mk-row"><span><b>${k.sym}</b></span><span style="text-align:right">${k.idr ? rp(k.idr) : "—"}<br><span class="mk-ch ${chgKelas(k.chg)}">${fmtChg(k.chg)}</span></span></div>`).join("")
+      : '<p class="muted">Harga kripto belum bisa diambil. Periksa koneksi, lalu tekan Perbarui.</p>';
+    $("mk-aset-kripto").textContent = rp(hitungAset().crypto);
+    renderGrafikMarket();
+    $("mk-usd").textContent = m.usd ? rp(m.usd) : "—";
+    $("mk-usd-src").textContent = m.usd ? "open.er-api.com" : "—";
+  }
+  let marketTimer = null;
+  const MARKET_INTERVAL = 60000;
+  function mulaiLive(){
+    stopLive();
+    ambilMarket();
+    marketTimer = setInterval(()=>{ if(!document.hidden) ambilMarket(); }, MARKET_INTERVAL);
+  }
+  function stopLive(){ if(marketTimer){ clearInterval(marketTimer); marketTimer = null; } }
+  const marketAktif = () => $("s-market").classList.contains("on");
+  document.addEventListener("visibilitychange", ()=>{
+    if(!marketAktif()) return;
+    if(document.hidden) stopLive(); else mulaiLive();
+  });
+  $("mk-refresh").addEventListener("click", ()=>{ $("mk-waktu").textContent = "Memperbarui..."; ambilMarket(); });
   // ---------- impor cadangan JSON ----------
   let jsonImpor = null;
   $("btn-impor-json").addEventListener("click", ()=>$("imp-json").click());
