@@ -127,6 +127,11 @@
   .seg.seg-rentang{overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
   .seg.seg-rentang::-webkit-scrollbar{display:none}
   .seg.seg-rentang button{flex:0 0 auto;padding:6px 9px;font-size:12px;min-width:0}
+  details.grup{margin-bottom:14px}
+  details.grup>summary{cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center;font-weight:600;font-size:15px;padding:8px 4px;margin-bottom:8px}
+  details.grup>summary::-webkit-details-marker{display:none}
+  details.grup>summary::after{content:"";width:8px;height:8px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(45deg);opacity:.6;transition:transform .2s;margin:0 6px 4px 0}
+  details.grup[open]>summary::after{transform:rotate(225deg);margin:4px 6px 0 0}
   .seg-palet button{font-size:12px;padding-left:2px;padding-right:2px}
 
   /* Progres tujuan tabungan */
@@ -303,9 +308,31 @@
     <div id="as-bersih" style="font-size:20px;font-weight:700;margin-top:2px">Rp 0</div>
   </div>
 
+  <div class="tiles" style="grid-template-columns:1fr 1fr;margin-bottom:6px">
+    <div class="tile"><small>Rekening bank</small><b id="sd-bank">Rp 0</b></div>
+    <div class="tile"><small>Cash</small><b id="sd-cash">Rp 0</b></div>
+  </div>
+  <p class="muted" id="sd-rincian" style="font-size:12px;margin:0 4px 14px">BCA · BLU · E-wallet</p>
+  <div id="ingat-tabungan"></div>
+
   <div class="row" style="margin-bottom:14px">
     <button id="sc-out" style="flex:1 1 0">− Pengeluaran</button>
     <button id="sc-in" class="ghost" style="flex:1 1 0">+ Pemasukan</button>
+  </div>
+  <button class="ghost" id="sc-pindah" style="width:100%;margin:-4px 0 14px">⇄ Pindah dana antar dompet</button>
+
+  <div class="glass" id="pd-form" style="display:none">
+    <h2>Pindah dana</h2>
+    <div class="row" style="margin-bottom:10px">
+      <select id="pd-dari" style="flex:1 1 120px"><option value="BCA">BCA</option><option value="BLU">Blu</option><option value="EWALLET">E-wallet</option><option value="CASH">Cash</option></select>
+      <select id="pd-ke" style="flex:1 1 120px"><option value="CASH">Cash</option><option value="BCA">BCA</option><option value="BLU">Blu</option><option value="EWALLET">E-wallet</option></select>
+    </div>
+    <div class="row" style="margin-bottom:10px">
+      <input type="text" id="pd-nom" placeholder="Nominal (Rp)" inputmode="numeric" style="flex:1 1 130px">
+      <input type="date" id="pd-tgl" style="flex:1 1 140px">
+    </div>
+    <button id="pd-simpan" style="width:100%">Pindahkan</button>
+    <p class="muted" id="pd-status" style="margin:10px 0 0"></p>
   </div>
 
   <div class="glass" id="sc-form" style="display:none">
@@ -323,6 +350,8 @@
     <p class="muted" id="sc-status" style="margin:10px 0 0"></p>
   </div>
 
+  <details class="grup" open>
+    <summary>Ringkasan bulan ini</summary>
   <div class="tiles">
     <div class="tile"><small>Pemasukan</small><b id="st-in">0</b></div>
     <div class="tile neg"><small>Pengeluaran</small><b id="st-out">0</b></div>
@@ -335,6 +364,9 @@
     <div class="chart-box"><canvas id="c-kategori"></canvas></div>
   </div>
 
+  </details>
+  <details class="grup">
+    <summary>Anggaran dan perbandingan</summary>
   <div class="glass">
     <h2>Anggaran bulan ini</h2>
     <div id="anggaran"></div>
@@ -345,14 +377,9 @@
     <div id="bandingkan"></div>
   </div>
 
-  <div class="glass">
-    <h2>Aset investasi</h2>
-    <div class="tiles" style="grid-template-columns:1fr 1fr;margin-bottom:0">
-      <div class="tile"><small>Crypto</small><b id="as-crypto">0</b></div>
-      <div class="tile"><small>RDPU</small><b id="as-rdpu">0</b></div>
-    </div>
-  </div>
-
+  </details>
+  <details class="grup">
+    <summary>Grafik</summary>
   <div class="glass">
     <h2>Pengeluaran harian</h2>
     <div class="chart-box"><canvas id="c-harian"></canvas></div>
@@ -367,6 +394,7 @@
     <h2>Tren total saldo</h2>
     <div class="chart-box"><canvas id="c-tren"></canvas></div>
   </div>
+  </details>
 </section>
 
 <!-- ============ CARI ============ -->
@@ -382,6 +410,13 @@
         <option value="CASH">Cash</option>
         <option value="EWALLET">E-wallet</option>
       </select>
+    </div>
+    <div class="row" style="margin-top:10px">
+      <input type="date" id="f-dari" title="Dari tanggal" style="flex:1 1 140px">
+      <input type="date" id="f-sampai" title="Sampai tanggal" style="flex:1 1 140px">
+    </div>
+    <div class="row" style="margin-top:10px">
+      <button class="ghost" id="f-csv" style="width:100%">Ekspor CSV hasil pencarian</button>
     </div>
   </div>
 
@@ -465,6 +500,14 @@
   </div>
 
   <div class="glass">
+    <h2>Aset investasi</h2>
+    <div class="tiles" style="grid-template-columns:1fr 1fr;margin-bottom:0">
+      <div class="tile"><small>Crypto</small><b id="as-crypto">0</b></div>
+      <div class="tile"><small>RDPU</small><b id="as-rdpu">0</b></div>
+    </div>
+  </div>
+
+  <div class="glass">
     <div class="row" style="justify-content:space-between;align-items:center;margin-bottom:6px">
       <h2 style="margin:0">Grafik <span id="mk-sym" class="muted" style="font-size:13px">BTC</span></h2>
       <select id="mk-pilih" style="flex:0 0 auto;width:auto;padding:6px 10px"></select>
@@ -477,7 +520,8 @@
   <div class="glass">
     <h2>Kripto</h2>
     <div id="mk-kripto"><p class="muted">Memuat...</p></div>
-    <p class="muted" style="font-size:12px;margin:10px 0 0">Total aset kripto yang kamu catat: <span id="mk-aset-kripto">Rp 0</span></p>
+    <div id="mk-pnl" style="margin-top:12px"></div>
+    <p class="muted" style="font-size:12px;margin:10px 0 0">Total aset kripto kamu: <span id="mk-aset-kripto">Rp 0</span></p>
   </div>
 
   <div class="glass">
@@ -486,6 +530,23 @@
       <div class="tile"><small>1 USD</small><b id="mk-usd">—</b></div>
       <div class="tile"><small>Sumber</small><b id="mk-usd-src" style="font-size:13px">—</b></div>
     </div>
+  </div>
+
+  <div id="mk-alarm-banner"></div>
+
+  <div class="glass">
+    <h2>Alarm harga</h2>
+    <div class="row" style="margin-bottom:10px">
+      <select id="al-sym" style="flex:1 1 90px"></select>
+      <select id="al-arah" style="flex:1 1 110px"><option value="atas">naik ke atas</option><option value="bawah">turun ke bawah</option></select>
+    </div>
+    <div class="row" style="margin-bottom:10px">
+      <input type="text" id="al-target" placeholder="Harga target (Rp)" inputmode="numeric" style="flex:2 1 160px">
+      <button id="al-pasang" style="flex:0 0 auto">Pasang</button>
+    </div>
+    <p class="muted" id="al-status" style="font-size:12px;margin:0 0 8px"></p>
+    <div><table><tbody id="al-list"></tbody></table></div>
+    <p class="muted" style="font-size:12px;margin:8px 0 0">Alarm berbunyi dan muncul notifikasi saat aplikasi atau tab Market terbuka. Notifikasi harus diizinkan dulu.</p>
   </div>
 
   <p class="muted" style="font-size:12px;margin:8px 4px 0">Data harga dari CoinGecko dan kurs dari open.er-api.com. Harga bisa tertunda beberapa menit. Bukan saran investasi.</p>
@@ -549,9 +610,13 @@
           <option value="crypto">Crypto</option>
           <option value="rdpu">RDPU</option>
         </select>
-        <input type="text" id="a-nama" placeholder="Nama aset" style="flex:2 1 150px">
+        <input type="text" id="a-nama" placeholder="Nama aset, misal BTC" style="flex:2 1 150px">
         <input type="text" id="a-nilai" placeholder="Nilai (Rp)" inputmode="numeric" style="flex:1 1 120px">
       </div>
+      <div id="a-crypto-extra" class="row" style="margin-bottom:10px">
+        <input type="text" id="a-qty" placeholder="Jumlah coin (opsional)" inputmode="decimal" style="flex:1 1 150px">
+      </div>
+      <p class="muted" style="font-size:12px;margin:-4px 0 10px">Untuk crypto, cukup isi simbol (BTC, ETH, SOL, BNB, XRP, DOGE, ADA) dan nominal Rp yang kamu keluarkan. Jumlah coin dihitung otomatis dari harga saat ini. Nilainya mengikuti harga live, dan untung/rugi dihitung dari nominal itu.</p>
       <button id="a-simpan" style="width:100%">Simpan aset</button>
       <p class="muted" id="a-status" style="margin:10px 0"></p>
       <div style="max-height:260px;overflow:auto"><table><tbody id="aset-list"></tbody></table></div>
@@ -797,17 +862,24 @@
   // ---------- total saldo & aset ----------
   function hitungAset(){
     const t = {crypto:0, rdpu:0};
-    aset.forEach(a=>{ t[a.kind] += a.nilai; });
+    aset.forEach(a=>{ t[a.kind] += nilaiAset(a); });
     return t;
   }
   function renderSaldo(){
     const totalSaldo = saldoAwal + data.reduce((a,t)=>a+t.amount,0);
     const at = hitungAset();
     $("tot-saldo").textContent = rp(totalSaldo);
+    // rincian per dompet: bank = BCA + BLU + E-wallet (saldo awal dihitung di BCA), cash terpisah
+    const per = {BCA: saldoAwal, BLU: 0, EWALLET: 0, CASH: 0};
+    data.forEach(t=>{ const k = t.src || "BCA"; per[k] = (per[k] || 0) + t.amount; });
+    $("sd-bank").textContent = rp(per.BCA + per.BLU + per.EWALLET);
+    $("sd-cash").textContent = rp(per.CASH);
+    $("sd-rincian").textContent = `BCA ${rp(per.BCA)} · BLU ${rp(per.BLU)} · E-wallet ${rp(per.EWALLET)}`;
     $("tot-saldo").style.color = totalSaldo<0 ? "var(--accent)" : "var(--light)";
     $("as-bersih").textContent = rp(totalSaldo + at.crypto + at.rdpu + totalTabungan());
     $("as-crypto").textContent = rp(at.crypto);
     $("as-rdpu").textContent = rp(at.rdpu);
+    renderPnlBeranda();
   }
 
   // ---------- beranda ----------
@@ -836,6 +908,7 @@
 
   function renderBeranda(){
     $("kosong").style.display = data.length ? "none" : "block";
+    if(typeof renderIngatTabungan === "function") renderIngatTabungan();
     renderSaldo();
     renderTabungan();
     const bln = bulanEl.value;
@@ -966,12 +1039,26 @@
   const q = $("q"), fsrc = $("f-src");
   q.addEventListener("input", renderCari);
   fsrc.addEventListener("change", renderCari);
+  $("f-dari").addEventListener("change", renderCari);
+  $("f-sampai").addEventListener("change", renderCari);
+  let cariList = [];
+  $("f-csv").addEventListener("click", ()=>{
+    const esc2 = v => `"${String(v).replace(/"/g,'""')}"`;
+    const baris = [["Tanggal","Keterangan","Sumber","Kategori","Jumlah"].join(",")]
+      .concat(cariList.map(t=>[t.date, esc2(t.desc), SRC_LABEL[t.src]||t.src||"", esc2(t.kat||tebak(t.desc,t.amount)), t.amount].join(",")));
+    const blob = new Blob(["\ufeff" + baris.join("\r\n")], {type:"text/csv;charset=utf-8"});
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob); a.download = "transaksi.csv"; a.click();
+  });
   function renderCari(){
     const kata = q.value.trim().toLowerCase();
     const src = fsrc.value;
+    const dari = $("f-dari").value, sampai = $("f-sampai").value;
     const list = data
-      .filter(t=>(!src||t.src===src) && (!kata||t.desc.toLowerCase().includes(kata)))
+      .filter(t=>(!src||t.src===src) && (!kata||t.desc.toLowerCase().includes(kata))
+        && (!dari || t.date >= dari) && (!sampai || t.date <= sampai))
       .sort((a,b)=>b.date.localeCompare(a.date));
+    cariList = list;
     if(!list.length){ $("daftar").innerHTML = '<p class="muted">Belum ada transaksi yang cocok.</p>'; return; }
     $("daftar").innerHTML = list.slice(0,300).map(t=>`
       <div class="tx">
@@ -1045,7 +1132,7 @@
     $("saldo-awal").value = saldoAwal ? fmt(saldoAwal) : "";
     const aa = aset;
     $("aset-list").innerHTML = aa.length
-      ? aa.map(a=>`<tr><td>${a.kind==="crypto"?"Crypto":"RDPU"}</td><td class="tx-desc">${esc(a.nama)}</td><td class="num">${fmt(a.nilai)}</td><td><button class="ghost" data-aset="${esc(a.id)}" style="padding:2px 8px;font-size:12px">hapus</button></td></tr>`).join("")
+      ? aa.map(a=>`<tr><td>${a.kind==="crypto"?"Crypto":"RDPU"}</td><td class="tx-desc">${esc(a.nama)}${a.qty?`<br><span class="muted" style="font-size:12px">${a.qty} · modal ${rp(a.modal)}</span><br>${pnlTeks(pnlAset(a))}`:""}</td><td class="num">${fmt(nilaiAset(a))}</td><td><button class="ghost" data-aset="${esc(a.id)}" style="padding:2px 8px;font-size:12px">hapus</button></td></tr>`).join("")
       : '<tr><td class="muted">Belum ada aset.</td></tr>';
     renderGoalsPustaka();
   }
@@ -1174,6 +1261,25 @@
     tulis(kunci, {t: Date.now(), data});
     return data;
   }
+  function renderPnlMarket(){
+    const el = $("mk-pnl"); if(!el) return;
+    el.innerHTML = pnlHtml();
+    renderPnlBeranda();
+  }
+  function renderPnlBeranda(){
+    const el = $("as-pnl"); if(el) el.innerHTML = pnlHtml(true);
+  }
+  function pnlHtml(ringkas){
+    const kripto = aset.filter(a=>a.kind === "crypto" && a.qty);
+    if(!kripto.length){ return ringkas ? '' : '<p class="muted" style="font-size:13px">Belum ada aset kripto dengan jumlah dan modal. Tambahkan di Pustaka, bagian Aset investasi.</p>'; }
+    let totNilai = 0, totModal = 0;
+    const baris = kripto.map(a=>{
+      const x = pnlAset(a); totNilai += x.nilai; totModal += a.modal;
+      return `<div class="mk-row"><span><b>${esc(a.sym)}</b> <span class="muted" style="font-size:12px">${a.qty} coin</span></span><span style="text-align:right">${rp(x.nilai)}<br>${pnlTeks(x)}</span></div>`;
+    }).join("");
+    const totRp = totNilai - totModal, totPct = totModal > 0 ? totRp / totModal * 100 : 0;
+    return baris + `<div class="mk-row" style="border-top:1px solid var(--line);margin-top:4px;padding-top:10px"><span><b>Total untung/rugi</b><br><span class="muted" style="font-size:12px">modal ${rp(totModal)}</span></span><span style="text-align:right">${rp(totNilai)}<br>${pnlTeks({rp: totRp, pct: totPct})}</span></div>`;
+  }
   async function renderGrafikMarket(){
     const token = ++grafikToken;
     const pilih = $("mk-pilih");
@@ -1241,6 +1347,9 @@
       : '<p class="muted">Harga kripto belum bisa diambil. Periksa koneksi, lalu tekan Perbarui.</p>';
     $("mk-aset-kripto").textContent = rp(hitungAset().crypto);
     renderGrafikMarket();
+    renderPnlMarket();
+    renderSaldo();
+    if(typeof cekAlarm === "function") cekAlarm();
     $("mk-usd").textContent = m.usd ? rp(m.usd) : "—";
     $("mk-usd-src").textContent = m.usd ? "open.er-api.com" : "—";
   }
@@ -1257,6 +1366,63 @@
     if(!marketAktif()) return;
     if(document.hidden) stopLive(); else mulaiLive();
   });
+  // ---------- alarm harga ----------
+  const KEY_ALARM = "lk.alarm.v1";
+  let alarms = baca(KEY_ALARM, []);
+  $("al-sym").innerHTML = KOIN.map(([,sym])=>`<option value="${sym}">${sym}</option>`).join("");
+  $("al-target").addEventListener("input", e=>{ const d = e.target.value.replace(/\D/g,""); e.target.value = d ? Number(d).toLocaleString("id-ID") : ""; });
+  function kirimNotif(judul, isi){
+    try{
+      if("Notification" in window && Notification.permission === "granted"){
+        if(navigator.serviceWorker && navigator.serviceWorker.ready){
+          navigator.serviceWorker.ready.then(r=>r.showNotification(judul, {body: isi, icon: "icon-192.png"})).catch(()=>new Notification(judul, {body: isi}));
+        } else new Notification(judul, {body: isi});
+      }
+    }catch(e){}
+    if(navigator.vibrate) navigator.vibrate([200,100,200]);
+  }
+  function cekAlarm(){
+    const k = market && market.koin; if(!k) return;
+    let berubah = false;
+    alarms.forEach(a=>{
+      if(!a.aktif) return;
+      const h = k.find(x=>x.sym === a.sym); if(!h || h.idr == null) return;
+      const kena = a.arah === "atas" ? h.idr >= a.target : h.idr <= a.target;
+      if(kena){
+        a.aktif = false; a.kenaPada = Date.now(); berubah = true;
+        const teks = `${a.sym} ${a.arah === "atas" ? "naik ke atas" : "turun ke bawah"} ${rp(a.target)}`;
+        kirimNotif("Alarm harga tercapai", `${teks}. Harga sekarang ${rp(h.idr)}.`);
+        $("mk-alarm-banner").innerHTML = `<div class="glass" style="margin-bottom:14px"><b class="pos">Alarm tercapai</b><div style="font-size:14px;margin-top:4px">${esc(teks)}</div><div class="muted" style="font-size:12px">Harga sekarang ${rp(h.idr)}</div></div>`;
+      }
+    });
+    if(berubah){ tulis(KEY_ALARM, alarms); renderAlarm(); }
+  }
+  function renderAlarm(){
+    $("al-list").innerHTML = alarms.length ? alarms.map(a=>`<tr>
+      <td class="tx-desc"><b>${esc(a.sym)}</b> ${a.arah === "atas" ? "naik ke atas" : "turun ke bawah"} ${rp(a.target)}<br>
+        <span class="muted" style="font-size:12px">${a.aktif ? "Menunggu" : "Tercapai " + new Date(a.kenaPada).toLocaleString("id-ID", {day:"numeric", month:"short", hour:"2-digit", minute:"2-digit"})}</span></td>
+      <td><button class="ghost" data-alarm="${esc(a.id)}" style="padding:2px 8px;font-size:12px">hapus</button></td></tr>`).join("")
+      : '<tr><td class="muted">Belum ada alarm.</td></tr>';
+  }
+  $("al-pasang").addEventListener("click", async ()=>{
+    const st = $("al-status");
+    const target = parseRp($("al-target").value);
+    if(!(target > 0)){ st.className = "neg"; st.textContent = "Isi harga target lebih dari 0."; return; }
+    if("Notification" in window && Notification.permission === "default"){
+      try{ await Notification.requestPermission(); }catch(e){}
+    }
+    alarms.push({id: uid(), sym: $("al-sym").value, arah: $("al-arah").value, target, aktif: true});
+    tulis(KEY_ALARM, alarms);
+    $("al-target").value = "";
+    st.className = "pos"; st.textContent = "Alarm dipasang.";
+    renderAlarm(); cekAlarm();
+  });
+  $("al-list").addEventListener("click", e=>{
+    const id = e.target.dataset.alarm; if(!id) return;
+    alarms = alarms.filter(a=>a.id !== id); tulis(KEY_ALARM, alarms); renderAlarm();
+  });
+  renderAlarm();
+
   $("mk-refresh").addEventListener("click", ()=>{ $("mk-waktu").textContent = "Memperbarui..."; ambilMarket(); });
   // ---------- impor cadangan JSON ----------
   let jsonImpor = null;
@@ -1296,21 +1462,65 @@
   });
 
   // aset
+  // ---------- aset: crypto (jumlah × harga live, untung/rugi) ----------
+  function simbolKoin(nama){
+    const u = String(nama||"").trim().toUpperCase().replace(/\s+/g,"");
+    return KOIN.some(k=>k[1]===u) ? u : null;
+  }
+  function nilaiAset(a){
+    if(a.kind === "crypto" && a.sym && a.qty){
+      const h = market && market.koin && market.koin.find(k=>k.sym === a.sym);
+      if(h && h.idr != null) return a.qty * h.idr;
+    }
+    return a.nilai || 0;
+  }
+  function pnlAset(a){
+    if(a.kind !== "crypto" || a.modal == null) return null;
+    const nilai = nilaiAset(a);
+    return {rp: nilai - a.modal, pct: a.modal > 0 ? (nilai - a.modal) / a.modal * 100 : 0, nilai};
+  }
+  function pnlTeks(x){
+    if(!x) return "";
+    const tanda = x.rp >= 0 ? "+" : "−";
+    return `<span class="mk-ch ${x.rp>=0?"up":"down"}">${tanda}${rp(Math.abs(x.rp))} (${tanda}${Math.abs(x.pct).toFixed(2)}%)</span>`;
+  }
+  function atur_jenis_aset(){
+    const kripto = $("a-jenis").value === "crypto";
+    $("a-crypto-extra").style.display = kripto ? "flex" : "none";
+    $("a-nilai").placeholder = kripto ? "Nominal Rp yang dikeluarkan" : "Nilai (Rp)";
+    $("a-nama").placeholder = kripto ? "Simbol, misal BTC" : "Nama aset";
+  }
+  $("a-jenis").addEventListener("change", atur_jenis_aset);
+  atur_jenis_aset();
   $("a-simpan").addEventListener("click", ()=>{
     const st = $("a-status");
     const kind = $("a-jenis").value;
     const nama = $("a-nama").value.trim();
-    const nilai = parseRp($("a-nilai").value);
+    const nilaiInput = parseRp($("a-nilai").value);
     if(!nama){ st.className="neg"; st.textContent="Isi nama aset dulu."; return; }
-    if(!(nilai>=0)){ st.className="neg"; st.textContent="Isi nilai aset dengan angka."; return; }
+    let sym = null, qty = null, modal = null;
+    if(kind === "crypto") sym = simbolKoin(nama);
+    if(sym){
+      modal = nilaiInput;
+      if(!(modal > 0)){ st.className="neg"; st.textContent="Isi nominal Rp yang kamu keluarkan."; return; }
+      const h = market && market.koin && market.koin.find(k=>k.sym === sym);
+      const harga = h && h.idr;
+      const manual = Number(String($("a-qty").value).replace(",", "."));
+      if(manual > 0) qty = manual;
+      else if(harga) qty = modal / harga;
+      else { st.className="neg"; st.textContent="Harga " + sym + " belum tersedia. Buka tab Market dulu, lalu coba lagi."; return; }
+    } else if(!(nilaiInput >= 0)){ st.className="neg"; st.textContent="Isi nilai aset dengan angka."; return; }
     const ada = aset.find(a=>a.kind===kind && a.nama.toLowerCase()===nama.toLowerCase());
-    if(ada) ada.nilai = nilai;
-    else aset.push({id:Date.now().toString(36)+Math.random().toString(36).slice(2,6), kind, nama, nilai});
+    const entri = sym ? {kind, nama: sym, sym, qty, modal} : {kind, nama};
+    if(ada){ Object.assign(ada, entri); }
+    else aset.push({id:Date.now().toString(36)+Math.random().toString(36).slice(2,6), ...entri});
+    const target = ada || aset[aset.length-1];
+    target.nilai = sym ? nilaiAset(target) : nilaiInput;
     tulis(KEY_ASET, aset);
-    $("a-nama").value = ""; $("a-nilai").value = "";
+    $("a-nama").value = ""; $("a-nilai").value = ""; $("a-qty").value = "";
     st.className = "pos";
-    st.textContent = (ada?"Diperbarui: ":"Ditambahkan: ") + nama + " (" + fmt(nilai) + ")";
-    renderPustaka(); renderBeranda();
+    st.textContent = (ada?"Diperbarui: ":"Ditambahkan: ") + entri.nama + (sym ? ` (${qty.toLocaleString("id-ID",{maximumFractionDigits:8})} ${sym} dari modal ${rp(modal)})` : " (" + fmt(target.nilai) + ")");
+    renderPustaka(); renderBeranda(); renderPnlMarket();
   });
   $("aset-list").addEventListener("click", e=>{
     const id = e.target.dataset.aset; if(!id) return;
@@ -1384,10 +1594,18 @@
 
   // BCA: "06/10/2026 KETERANGAN ... 200,000.00 DB" (angka format 1,000.00)
   function parseBCA(baris){
+    // tanggal akhir periode dipakai untuk transaksi PEND (belum settle, kolom tanggal kosong)
+    let tglPeriode = null;
+    for(const b of baris){
+      const pm = b.match(/PERIODE\s*:?\s*\d{2}\/\d{2}\/\d{4}\s*-\s*(\d{2})\/(\d{2})\/(\d{4})/i);
+      if(pm){ tglPeriode = `${pm[3]}-${pm[2]}-${pm[1]}`; break; }
+    }
     const blok = []; let cur = null;
     for(const b of baris){
       const m = b.match(/^(\d{2})\/(\d{2})\/(\d{4})\s+(.*)$/);
-      if(m){ if(cur) blok.push(cur); cur = {date:`${m[3]}-${m[2]}-${m[1]}`, text:m[4]}; }
+      const pend = !m && b.match(/^\s*PEND\b\s*(.*)$/i);
+      if(m){ if(cur) blok.push(cur); cur = {date:`${m[3]}-${m[2]}-${m[1]}`, text:m[4], pending:false}; }
+      else if(pend && tglPeriode){ if(cur) blok.push(cur); cur = {date:tglPeriode, text:pend[1], pending:true}; }
       else if(/SALDO AKHIR|Apabila nasabah|CATATAN|HALAMAN|NO\. REKENING/i.test(b)){ if(cur) blok.push(cur); cur = null; }
       else if(cur) cur.text += " " + b;
     }
@@ -1397,14 +1615,14 @@
       const a = r.text.match(/([\d,]+\.\d{2})\s*(DB|CR)\b/);
       if(!a) continue;
       const v = Number(a[1].replace(/,/g,""));
-      const desc = (r.text.slice(0,a.index) + " " + r.text.slice(a.index + a[0].length)).replace(/\s+/g," ").trim();
+      // buang angka referensi yang menempel ke nama, misal "50000.00SLAMET"
+      const bersih = (r.text.slice(0,a.index) + " " + r.text.slice(a.index + a[0].length)).replace(/\b\d+\.\d{2}(?=[A-Za-z])/g," ");
+      const desc = bersih.replace(/\s+/g," ").trim();
       if(/SALDO (AWAL|AKHIR)/i.test(desc)) continue;
-      hasil.push({date:r.date, desc, amount: a[2]==="DB" ? -v : v, src:"BCA"});
+      hasil.push({date:r.date, desc, amount: a[2]==="DB" ? -v : v, src:"BCA", pending:r.pending});
     }
     return hasil;
   }
-
-  // Blu: "01 Oct 2026 KETERANGAN - 5.000,00 916.010,18" (jam bisa di baris terpisah)
   function parseBlu(baris){
     const blok = []; let cur = null;
     const RE_TGL = /^(\d{1,2})\s+([A-Za-z]{3,4})\s+(\d{4})\b\s*(.*)$/;
@@ -1435,6 +1653,27 @@
 
   let hasilBaca = [];
   let lewatiAda = 0;
+  // gabungkan hasil impor ke data lama:
+  // - transaksi settled menggantikan transaksi pending yang nominal dan sumbernya sama (tanggal selisih <= 7 hari)
+  // - transaksi pending yang sudah ada tidak dimasukkan dua kali
+  function terapkanPending(lama, masuk){
+    let hasil = lama.slice();
+    const selisihHari = (a,b) => Math.abs(Date.parse(a) - Date.parse(b)) / 86400000;
+    // 1) transaksi settled: ganti pending yang cocok (sumber, nominal, tanggal selisih <= 7 hari)
+    masuk.filter(t=>!t.pending).forEach(t=>{
+      const i = hasil.findIndex(d=>d.pending && d.src===t.src && d.amount===t.amount && selisihHari(d.date, t.date) <= 7);
+      if(i >= 0) hasil.splice(i, 1);
+      hasil.push(t);
+    });
+    // 2) transaksi pending: lewati yang sudah ada (dihitung per jumlah, supaya pembelian identik tetap masuk)
+    const pool = hasil.filter(d=>d.pending).map(d=>({src:d.src, amount:d.amount}));
+    masuk.filter(t=>t.pending).forEach(t=>{
+      const i = pool.findIndex(x=>x.src===t.src && x.amount===t.amount);
+      if(i >= 0) pool.splice(i, 1);
+      else hasil.push(t);
+    });
+    return hasil;
+  }
   $("btn-baca").addEventListener("click", async ()=>{
     const files = [...$("imp-file").files];
     const src = $("imp-src").value;
@@ -1478,7 +1717,7 @@
       <div style="max-height:300px;overflow:auto;margin:8px 0">
         <table><tbody>${hasilBaca.map((t,i)=>`
           <tr>
-            <td style="white-space:nowrap">${esc(t.date)}</td>
+            <td style="white-space:nowrap">${esc(t.date)}${t.pending ? '<br><span class="muted" style="font-size:11px">pending</span>' : ""}</td>
             <td class="tx-desc">${esc(t.desc)}<br>
               <label class="muted"><input type="checkbox" data-pv="${i}" ${t.transfer?"checked":""} style="margin-right:4px">transfer</label></td>
             <td class="num ${t.amount>0?"pos":"neg"}">${t.amount>0?"+":"-"}${fmt(Math.abs(t.amount))}</td>
@@ -1489,7 +1728,7 @@
       hasilBaca[Number(e.target.dataset.pv)].transfer = e.target.checked;
     }));
     $("btn-simpan").addEventListener("click", ()=>{
-      data.push(...hasilBaca); simpan(); hasilBaca = [];
+      data = terapkanPending(data, hasilBaca); simpan(); hasilBaca = [];
       $("imp-file").value = "";
       pv.innerHTML = '<p class="pos">Tersimpan. Lihat hasilnya di Beranda.</p>';
       bulanEl.value = bulanTerakhir(); renderPustaka();
@@ -1516,6 +1755,32 @@
   }
   $("sc-out").addEventListener("click", ()=>bukaSc("out"));
   $("sc-in").addEventListener("click", ()=>bukaSc("in"));
+  const SRC_LABEL = {BCA:"BCA", BLU:"Blu", EWALLET:"E-wallet", CASH:"Cash"};
+  $("sc-pindah").addEventListener("click", ()=>{
+    const f = $("pd-form"); const buka = f.style.display === "none";
+    f.style.display = buka ? "block" : "none";
+    if(buka){ $("pd-tgl").value = new Date().toISOString().slice(0,10); $("pd-status").textContent = ""; }
+  });
+  $("pd-nom").addEventListener("input", e=>{ const d = e.target.value.replace(/\D/g,""); e.target.value = d ? Number(d).toLocaleString("id-ID") : ""; });
+  $("pd-simpan").addEventListener("click", ()=>{
+    const st = $("pd-status");
+    const dari = $("pd-dari").value, ke = $("pd-ke").value;
+    const nom = parseRp($("pd-nom").value), tgl = $("pd-tgl").value;
+    if(dari === ke){ st.className="neg"; st.textContent="Pilih dompet asal dan tujuan yang berbeda."; return; }
+    if(!(nom>0)){ st.className="neg"; st.textContent="Isi nominal lebih dari 0."; return; }
+    if(!tgl){ st.className="neg"; st.textContent="Isi tanggal dulu."; return; }
+    // dua baris transfer: keluar dari asal, masuk ke tujuan (tidak dihitung sebagai pemasukan/pengeluaran)
+    data.push(
+      {id: uid(), date: tgl, desc: `Pindah ke ${SRC_LABEL[ke]}`, amount: -nom, src: dari, transfer: true, kat: "Lainnya", manual: true},
+      {id: uid(), date: tgl, desc: `Pindah dari ${SRC_LABEL[dari]}`, amount: nom, src: ke, transfer: true, kat: "Lainnya", manual: true}
+    );
+    simpan();
+    $("pd-nom").value = "";
+    st.className = "pos";
+    st.textContent = `Dipindahkan ${fmt(nom)} dari ${SRC_LABEL[dari]} ke ${SRC_LABEL[ke]}.`;
+    renderBeranda();
+  });
+
   $("sc-simpan").addEventListener("click", ()=>{
     const st = $("sc-status");
     const nom = parseRp($("sc-nom").value);
@@ -1546,6 +1811,36 @@
   const KEY_GOAL = "lk.tabungan.v1";
   let goals = baca(KEY_GOAL, []);
   const simpanGoals = () => tulis(KEY_GOAL, goals);
+  function langkahPeriode(ymd, periode){
+    const [y,m,d] = ymd.split("-").map(Number);
+    if(periode === "harian") return ymdLokal(new Date(y, m-1, d+1));
+    if(periode === "mingguan") return ymdLokal(new Date(y, m-1, d+7));
+    const bd = new Date(y, m, 1), akhir = new Date(bd.getFullYear(), bd.getMonth()+1, 0).getDate();
+    return ymdLokal(new Date(bd.getFullYear(), bd.getMonth(), Math.min(d, akhir)));
+  }
+  function renderIngatTabungan(){
+    const hari = ymdLokal(new Date());
+    const wadah = $("ingat-tabungan");
+    const jatuh = goals.filter(g=>!hitungTabungan(g).tercapai).map(g=>{
+      const setor = data.filter(t=>t.goalId === g.id).map(t=>t.date).sort();
+      const terakhir = setor.length ? setor[setor.length-1] : null;
+      const jatuhTempo = terakhir ? langkahPeriode(terakhir, g.periode) : g.mulai;
+      return {g, jatuhTempo, sudahHariIni: terakhir === hari};
+    }).filter(x=>hari >= x.jatuhTempo && !x.sudahHariIni);
+    wadah.innerHTML = jatuh.length ? `<div class="glass" style="margin-bottom:14px">
+      <h2>Waktunya menabung</h2>
+      ${jatuh.map(({g})=>`<div class="row" style="justify-content:space-between;align-items:center;padding:6px 0">
+        <div><b>${esc(g.nama)}</b><div class="muted" style="font-size:12px">Setor ${rp(g.nominal)} per ${PERIODE[g.periode]}</div></div>
+        <button data-setor="${esc(g.id)}" style="flex:0 0 auto;padding:6px 12px;font-size:13px">Catat setor</button></div>`).join("")}
+    </div>` : "";
+  }
+  $("ingat-tabungan").addEventListener("click", e=>{
+    const id = e.target.dataset.setor; if(!id) return;
+    const g = goals.find(x=>x.id===id); if(!g) return;
+    data.push({id: uid(), date: ymdLokal(new Date()), desc: "Setor " + g.nama, amount: -g.nominal, src: "BCA", transfer: false, kat: "Tabungan", manual: true, goalId: g.id});
+    simpan();
+    renderIngatTabungan(); renderBeranda(); renderTabungan(); renderGoalsPustaka();
+  });
   const PERIODE = {harian:"hari", mingguan:"minggu", bulanan:"bulan"};
   const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,6);
   const tglIndo = d => d.toLocaleDateString("id-ID", {day:"numeric", month:"short", year:"numeric"});
