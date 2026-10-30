@@ -97,36 +97,40 @@
   /* Laporan PDF: hanya tampil saat dicetak (Simpan sebagai PDF) */
   #laporan-cetak{display:none}
   @media print{
-    @page{margin:14mm}
-    html,body{background:#fff!important;color:#000!important}
+    @page{margin:14mm 13mm}
+    html,body{background:#fff!important;color:#111!important}
     body > *:not(#laporan-cetak){display:none!important}
-    #laporan-cetak{display:block!important;color:#000;font-family:Inter,-apple-system,"Helvetica Neue",Arial,sans-serif;font-size:12px}
-    #laporan-cetak h1{font-size:22px;margin:0 0 4px;color:#000}
-    #laporan-cetak h2{font-size:15px;margin:22px 0 8px;color:#000;border-bottom:1px solid #000;padding-bottom:4px}
-    #laporan-cetak .sub{color:#555;margin:0 0 14px}
-    #laporan-cetak .ringkas{display:flex;gap:10px}
-    #laporan-cetak .ringkas div{flex:1;border:1px solid #bbb;border-radius:8px;padding:10px}
-    #laporan-cetak .ringkas small{display:block;color:#555;font-size:11px}
-    #laporan-cetak .ringkas b{font-size:15px}
-    #laporan-cetak table{width:100%;border-collapse:collapse;margin-top:6px}
-    #laporan-cetak th,#laporan-cetak td{border-bottom:1px solid #ddd;padding:5px 6px;text-align:right}
+    #laporan-cetak{display:block!important;color:#111;font-family:Inter,-apple-system,"Helvetica Neue",Arial,sans-serif;font-size:11px;line-height:1.4}
+    #laporan-cetak .kop{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:2px solid #111;padding-bottom:8px;margin-bottom:14px}
+    #laporan-cetak .kop h1{font-size:20px;margin:0;letter-spacing:-.01em}
+    #laporan-cetak .kop .meta{text-align:right;color:#555;font-size:10px}
+    #laporan-cetak h2{font-size:13px;margin:18px 0 8px;color:#111;padding-bottom:4px;border-bottom:1px solid #bbb;page-break-after:avoid;text-transform:uppercase;letter-spacing:.04em}
+    #laporan-cetak h3{font-size:11px;margin:12px 0 6px;color:#333;page-break-after:avoid}
+    #laporan-cetak .muted{color:#666}
+    #laporan-cetak .ringkas{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+    #laporan-cetak .ringkas div{border:1px solid #ccc;border-radius:8px;padding:9px 10px}
+    #laporan-cetak .ringkas small{display:block;color:#666;font-size:10px;text-transform:uppercase;letter-spacing:.04em}
+    #laporan-cetak .ringkas b{font-size:14px}
+    #laporan-cetak .dompet{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+    #laporan-cetak .dompet div{border:1px solid #ccc;border-radius:8px;padding:8px 10px}
+    #laporan-cetak .dompet small{color:#666;font-size:10px}
+    #laporan-cetak .dompet b{display:block;font-size:13px;margin-top:2px}
+    #laporan-cetak table{width:100%;border-collapse:collapse;margin-top:4px}
+    #laporan-cetak th,#laporan-cetak td{border-bottom:1px solid #e3e3e3;padding:4px 6px;text-align:right;vertical-align:top}
     #laporan-cetak th:first-child,#laporan-cetak td:first-child{text-align:left}
-    #laporan-cetak th{font-weight:600;background:#f2f2f2}
-    #laporan-cetak .grafik{margin:8px 0;page-break-inside:avoid}
+    #laporan-cetak th{font-weight:600;background:#f3f3f3;font-size:10px;text-transform:uppercase;letter-spacing:.03em}
+    #laporan-cetak tr{page-break-inside:avoid}
+    #laporan-cetak tfoot td,#laporan-cetak tr.total td{font-weight:700;border-top:1.5px solid #111;border-bottom:none}
+    #laporan-cetak .grafik{margin:6px 0 4px;page-break-inside:avoid}
     #laporan-cetak .grafik canvas{display:block}
-    #laporan-cetak h2{page-break-after:avoid}
-    #laporan-cetak .tabel{page-break-inside:auto}
+    #laporan-cetak .pos{color:#111}
+    #laporan-cetak .neg{color:#7a7a7a}
+    #laporan-cetak .bagi{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+    #laporan-cetak .bagi > div{min-width:0}
+    #laporan-cetak .kecil{font-size:9.5px}
+    #laporan-cetak .pb{page-break-before:always}
+    #laporan-cetak .catatan{margin-top:16px;font-size:9.5px;color:#666;border-top:1px solid #ddd;padding-top:6px}
   }
-  .mk-row{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--line);font-size:14px}
-  .mk-row:last-child{border-bottom:none}
-  .live-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--light);margin-right:6px;vertical-align:middle;animation:livePulse 1.6s ease-in-out infinite}
-  @keyframes livePulse{0%,100%{opacity:1}50%{opacity:.25}}
-  @media (prefers-reduced-motion: reduce){.live-dot{animation:none}}
-  .mk-ch{font-size:12px;font-weight:600}
-  .mk-ch.up{color:var(--light)} .mk-ch.down{color:var(--accent)}
-  .seg.seg-rentang{overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
-  .seg.seg-rentang::-webkit-scrollbar{display:none}
-  .seg.seg-rentang button{flex:0 0 auto;padding:6px 9px;font-size:12px;min-width:0}
   details.grup{margin-bottom:14px}
   details.grup>summary{cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center;font-weight:600;font-size:15px;padding:8px 4px;margin-bottom:8px}
   details.grup>summary::-webkit-details-marker{display:none}
@@ -1156,41 +1160,119 @@
   function bukaLaporanPdf(){
     const wadah = $("laporan-cetak");
     const pakai = data.filter(t=>!t.transfer && t.kat!=="Tabungan");
-    const bulan = {}, tahun = {}, kat = {};
-    let totIn = 0, totOut = 0;
+    const rupiahTx = n => (n<0?"−":"") + fmt(Math.abs(n));
+    const bulan = {}, tahun = {}, kat = {}, dompet = {BCA:0, BLU:0, EWALLET:0, CASH:0};
+    let totIn = 0, totOut = 0, jumlahIn = 0, jumlahOut = 0;
     pakai.forEach(t=>{
       const m = t.date.slice(0,7), y = t.date.slice(0,4);
       const masuk = t.amount > 0 ? t.amount : 0, keluar = t.amount < 0 ? -t.amount : 0;
-      bulan[m] = bulan[m] || {in:0,out:0}; bulan[m].in += masuk; bulan[m].out += keluar;
-      tahun[y] = tahun[y] || {in:0,out:0}; tahun[y].in += masuk; tahun[y].out += keluar;
+      bulan[m] = bulan[m] || {in:0,out:0,n:0}; bulan[m].in += masuk; bulan[m].out += keluar; bulan[m].n++;
+      tahun[y] = tahun[y] || {in:0,out:0,n:0}; tahun[y].in += masuk; tahun[y].out += keluar; tahun[y].n++;
       totIn += masuk; totOut += keluar;
+      if(masuk) jumlahIn++; if(keluar) jumlahOut++;
       if(keluar > 0){ const k = t.kat || "Lainnya"; kat[k] = (kat[k] || 0) + keluar; }
     });
-    const kBulan = Object.keys(bulan).sort(), kTahun = Object.keys(tahun).sort(), kKat = Object.keys(kat).sort((a,b)=>kat[b]-kat[a]);
-    const hariIni = tglIndo(new Date());
-    const baris = (o, label) => Object.keys(o).sort().map(k=>`<tr><td>${label(k)}</td><td>${rp(o[k].in)}</td><td>${rp(o[k].out)}</td><td>${rp(o[k].in - o[k].out)}</td></tr>`).join("");
-    const tabel = (judul, o, label) => `<h2>${judul}</h2><div class="tabel"><table><tr><th>Periode</th><th>Pemasukan</th><th>Pengeluaran</th><th>Selisih</th></tr>${baris(o, label)}</table></div>`;
+    // saldo per dompet (semua transaksi termasuk transfer dan tabungan, plus saldo awal di BCA)
+    const dompetSaldo = {BCA: saldoAwal, BLU:0, EWALLET:0, CASH:0};
+    data.forEach(t=>{ const k = t.src || "BCA"; dompetSaldo[k] = (dompetSaldo[k] || 0) + t.amount; });
+    const saldoTotal = saldoAwal + data.reduce((a,t)=>a+t.amount,0);
+    const bank = dompetSaldo.BCA + dompetSaldo.BLU + dompetSaldo.EWALLET;
+    const kBulan = Object.keys(bulan).sort(), kTahun = Object.keys(tahun).sort();
+    const kKat = Object.keys(kat).sort((a,b)=>kat[b]-kat[a]);
+    const sumKeluar = kKat.reduce((a,k)=>a+kat[k],0);
+    const namaBulan = k => { const [y,m] = k.split("-"); return BLN[+m-1] + " " + y; };
+    const sekarang = new Date();
+    const hariIni = tglIndo(sekarang);
+    const rentang = pakai.length ? `${tglIndo(new Date(pakai.map(t=>t.date).sort()[0]))} – ${tglIndo(new Date(pakai.map(t=>t.date).sort().pop()))}` : "-";
+    const pct = (x, total) => total ? (x/total*100).toFixed(1) + "%" : "-";
+    const persenUbah = (now, prev) => !prev ? "baru" : (((now-prev)/prev*100).toFixed(1) + "%");
     const kosong = !pakai.length ? '<p>Belum ada transaksi untuk dilaporkan.</p>' : "";
+
+    // ringkasan bulanan & tahunan dengan rata-rata dan persentase
+    const barisPeriode = (o, label, daftar) => daftar.map((k,i)=>{
+      const prev = daftar[i-1] ? o[daftar[i-1]] : null;
+      const sel = o[k].in - o[k].out;
+      return `<tr><td>${label(k)}</td><td>${rupiahTx(o[k].in)}</td><td>${rupiahTx(-o[k].out)}</td><td>${rupiahTx(sel)}</td><td>${o[k].n}</td><td>${prev ? persenUbah(o[k].out, prev.out) : "-"}</td></tr>`;
+    }).join("");
+    const tabelPeriode = (judul, o, label, daftar) => `<h2>${judul}</h2><table>
+      <thead><tr><th>Periode</th><th>Pemasukan</th><th>Pengeluaran</th><th>Selisih</th><th>Jumlah transaksi</th><th>Perubahan keluar</th></tr></thead>
+      <tbody>${barisPeriode(o, label, daftar)}</tbody>
+      <tfoot><tr><td>Total</td><td>${rupiahTx(totIn)}</td><td>${rupiahTx(-totOut)}</td><td>${rupiahTx(totIn-totOut)}</td><td>${pakai.length}</td><td></td></tr></tfoot></table>`;
+
+    // kategori dengan persentase
+    const tabelKat = kKat.length ? `<h3>Pengeluaran per kategori (semua waktu)</h3><table>
+      <thead><tr><th>Kategori</th><th>Jumlah</th><th>Porsi</th></tr></thead>
+      <tbody>${kKat.map(k=>`<tr><td>${esc(ikonKat(k))}</td><td>${rupiahTx(-kat[k])}</td><td>${pct(kat[k], sumKeluar)}</td></tr>`).join("")}</tbody>
+      <tfoot><tr><td>Total pengeluaran</td><td>${rupiahTx(-sumKeluar)}</td><td>100%</td></tr></tfoot></table>` : "";
+
+    // anggaran bulan terakhir
+    const bulanAkhir = kBulan.length ? kBulan[kBulan.length-1] : null;
+    const katAkhir = {};
+    if(bulanAkhir) pakai.filter(t=>t.date.slice(0,7)===bulanAkhir && t.amount<0).forEach(t=>{ const k = t.kat || tebak(t.desc,t.amount); katAkhir[k] = (katAkhir[k]||0) + (-t.amount); });
+    const bKeys = Object.keys(budget);
+    const tabelAnggaran = bKeys.length ? `<h3>Anggaran ${bulanAkhir ? namaBulan(bulanAkhir) : ""}</h3><table>
+      <thead><tr><th>Kategori</th><th>Terpakai</th><th>Anggaran</th><th>Sisa</th><th>Status</th></tr></thead>
+      <tbody>${bKeys.map(k=>{ const pakaiK = katAkhir[k]||0, lim = budget[k]; return `<tr><td>${esc(ikonKat(k))}</td><td>${rupiahTx(-pakaiK)}</td><td>${rupiahTx(lim)}</td><td>${rupiahTx(lim-pakaiK)}</td><td>${pakaiK>lim?"Melewati batas":pakaiK>=lim*.8?"Hampir habis":"Aman"}</td></tr>`; }).join("")}</tbody></table>` : "";
+
+    // tabungan
+    const tabelTabungan = goals.length ? `<h3>Progres tabungan</h3><table>
+      <thead><tr><th>Tujuan</th><th>Terkumpul</th><th>Target</th><th>Progres</th></tr></thead>
+      <tbody>${goals.map(g=>{ const h = hitungTabungan(g); return `<tr><td>${esc(g.nama)}</td><td>${rupiahTx(h.saved)}</td><td>${rupiahTx(g.target)}</td><td>${Math.round(h.pct)}%</td></tr>`; }).join("")}</tbody></table>` : "";
+
+    // aset & untung rugi
+    const asetKripto = aset.filter(a=>a.kind==="crypto");
+    const tabelAset = aset.length ? `<h3>Aset investasi</h3><table>
+      <thead><tr><th>Aset</th><th>Jenis</th><th>Jumlah</th><th>Modal</th><th>Nilai sekarang</th><th>Untung/rugi</th></tr></thead>
+      <tbody>${aset.map(a=>{ const x = pnlAset(a); const nilai = nilaiAset(a); return `<tr><td>${esc(a.nama)}</td><td>${a.kind==="crypto"?"Crypto":"RDPU"}</td><td>${a.qty ? a.qty.toLocaleString("id-ID",{maximumFractionDigits:8}) : "-"}</td><td>${a.modal!=null?rupiahTx(a.modal):"-"}</td><td>${rupiahTx(nilai)}</td><td>${x ? (x.rp>=0?"+":"−")+fmt(Math.abs(x.rp))+" ("+(x.rp>=0?"+":"−")+Math.abs(x.pct).toFixed(2)+"%)" : "-"}</td></tr>`; }).join("")}</tbody></table>` : "";
+
+    // detail transaksi, dikelompokkan per bulan
+    const urut = pakai.slice().sort((x,y)=>y.date.localeCompare(x.date));
+    const grup = {};
+    urut.forEach(t=>{ const m = t.date.slice(0,7); (grup[m] = grup[m] || []).push(t); });
+    const detail = Object.keys(grup).sort().reverse().map(m=>`<h3>${namaBulan(m)} · ${grup[m].length} transaksi</h3><table>
+      <thead><tr><th>Tanggal</th><th>Keterangan</th><th>Dompet</th><th>Kategori</th><th>Jumlah</th></tr></thead>
+      <tbody>${grup[m].map(t=>`<tr><td>${esc(t.date)}</td><td>${esc(t.desc)}${t.pending?' <span class="muted">(pending)</span>':""}</td><td>${esc(SRC_LABEL[t.src]||t.src||"")}</td><td>${esc(ikonKat(t.kat||tebak(t.desc,t.amount)))}</td><td>${rupiahTx(t.amount)}</td></tr>`).join("")}</tbody></table>`).join("");
+
     wadah.innerHTML = `
-      <h1>Laporan Keuangan Pribadi</h1>
-      <p class="sub">Dicetak ${hariIni}</p>
-      ${kosong}
-      <div class="ringkas">
-        <div><small>Total pemasukan</small><b>${rp(totIn)}</b></div>
-        <div><small>Total pengeluaran</small><b>${rp(totOut)}</b></div>
-        <div><small>Selisih</small><b>${rp(totIn - totOut)}</b></div>
+      <div class="kop">
+        <div><h1>Laporan Keuangan Pribadi</h1><div class="muted">Periode data: ${rentang}</div></div>
+        <div class="meta">Dicetak ${hariIni}<br>${pakai.length} transaksi</div>
       </div>
-      ${kTahun.length ? `<h2>Grafik tahunan</h2><div class="grafik"><canvas id="cp-tahun" width="680" height="300" style="width:680px;height:300px"></canvas></div>` : ""}
-      ${kTahun.length ? tabel("Ringkasan tahunan", tahun, k=>k) : ""}
-      ${kBulan.length ? `<h2>Grafik bulanan</h2><div class="grafik"><canvas id="cp-bulan" width="680" height="300" style="width:680px;height:300px"></canvas></div>` : ""}
-      ${kBulan.length ? tabel("Ringkasan bulanan", bulan, namaBulan) : ""}
-      ${kKat.length ? `<h2>Pengeluaran per kategori (semua waktu)</h2><div class="grafik"><canvas id="cp-kat" width="680" height="320" style="width:680px;height:320px"></canvas></div>` : ""}
+      ${kosong}
+      <h2>Ringkasan</h2>
+      <div class="ringkas">
+        <div><small>Total pemasukan</small><b class="pos">${rupiahTx(totIn)}</b></div>
+        <div><small>Total pengeluaran</small><b class="neg">${rupiahTx(-totOut)}</b></div>
+        <div><small>Selisih</small><b>${rupiahTx(totIn-totOut)}</b></div>
+      </div>
+      <h3>Saldo per dompet</h3>
+      <div class="dompet">
+        <div><small>Rekening bank (BCA, BLU, E-wallet)</small><b>${rupiahTx(bank)}</b></div>
+        <div><small>Cash</small><b>${rupiahTx(dompetSaldo.CASH)}</b></div>
+      </div>
+      <p class="kecil muted" style="margin:6px 0 0">BCA ${rupiahTx(dompetSaldo.BCA)} · BLU ${rupiahTx(dompetSaldo.BLU)} · E-wallet ${rupiahTx(dompetSaldo.EWALLET)} · Total saldo ${rupiahTx(saldoTotal)}</p>
+
+      ${kTahun.length ? `<h2>Grafik tahunan</h2><div class="grafik"><canvas id="cp-tahun" width="680" height="280" style="width:680px;height:280px;max-width:100%"></canvas></div>` : ""}
+      ${kTahun.length ? tabelPeriode("Ringkasan tahunan", tahun, k=>k, kTahun) : ""}
+
+      ${kBulan.length ? `<h2>Grafik bulanan</h2><div class="grafik"><canvas id="cp-bulan" width="680" height="280" style="width:680px;height:280px;max-width:100%"></canvas></div>` : ""}
+      ${kBulan.length ? tabelPeriode("Ringkasan bulanan", bulan, namaBulan, kBulan) : ""}
+
+      ${kKat.length ? `<h2>Kategori</h2><div class="bagi"><div class="grafik"><canvas id="cp-kat" width="330" height="260" style="width:330px;height:260px;max-width:100%"></canvas></div><div>${tabelKat}</div></div>` : ""}
+
+      ${(tabelAnggaran || tabelTabungan || tabelAset) ? `<h2>Anggaran, tabungan, dan aset</h2>${tabelAnggaran}${tabelTabungan}${tabelAset}` : ""}
+
+      ${detail ? `<div class="pb"></div><h2>Detail transaksi</h2>${detail}` : ""}
+
+      <div class="catatan">Laporan ini dibuat dari data yang tersimpan di browser. Transaksi transfer antar dompet dan setoran tabungan tidak dihitung sebagai pemasukan atau pengeluaran. Nilai aset kripto mengikuti harga saat laporan dicetak. Bukan saran investasi.</div>
     `;
-    wadah.querySelectorAll("canvas").forEach(c=>{ c.style.maxWidth = "100%"; });
+
+    // grafik
+    const chCetak0 = [];
     const opsiCetak = (fy, legend) => ({
       responsive:false, animation:false,
-      plugins:{legend:{display:!!legend, labels:{color:"#000"}}},
-      scales:{x:{ticks:{color:"#000"},grid:{color:"#e5e5e5"}}, y:{beginAtZero:true,ticks:{color:"#000",callback:fy},grid:{color:"#e5e5e5"}}}
+      plugins:{legend:{display:!!legend, labels:{color:"#111"}}},
+      scales:{x:{ticks:{color:"#111"},grid:{color:"#e5e5e5"}}, y:{beginAtZero:true,ticks:{color:"#111",callback:fy},grid:{color:"#e5e5e5"}}}
     });
     const cetakCh = (el, cfg) => { const c = mkChart(el, cfg); if(c) chCetak.push(c); };
     const aman = v => fmt(v);
@@ -1200,9 +1282,9 @@
     if(kBulan.length) cetakCh($("cp-bulan"),{type:"bar", data:{labels:kBulan.map(namaBulan), datasets:[
       {label:"Pemasukan", data:kBulan.map(k=>bulan[k].in), backgroundColor:"#111", borderRadius:4},
       {label:"Pengeluaran", data:kBulan.map(k=>bulan[k].out), backgroundColor:"#9a9a9a", borderRadius:4}]}, options:opsiCetak(aman,true)});
-    if(kKat.length) cetakCh($("cp-kat"),{type:"doughnut", data:{labels:kKat, datasets:[
+    if(kKat.length) cetakCh($("cp-kat"),{type:"doughnut", data:{labels:kKat.map(ikonKat), datasets:[
       {data:kKat.map(k=>kat[k]), backgroundColor:["#111","#999","#444","#ccc","#666","#aaa","#222","#ddd"], borderColor:"#fff", borderWidth:2}]},
-      options:{responsive:false, animation:false, plugins:{legend:{position:"right", labels:{color:"#000"}}, tooltip:{callbacks:{label:c=>c.label+": "+rp(c.parsed)}}}}});
+      options:{responsive:false, animation:false, plugins:{legend:{position:"bottom", labels:{color:"#111", boxWidth:10, font:{size:10}}}, tooltip:{callbacks:{label:c=>c.label+": "+rp(c.parsed)}}}}});
     const bersih = () => { chCetak.forEach(c=>c.destroy()); chCetak = []; wadah.innerHTML = ""; window.removeEventListener("afterprint", bersih); };
     window.addEventListener("afterprint", bersih);
     setTimeout(()=>window.print(), 350);
